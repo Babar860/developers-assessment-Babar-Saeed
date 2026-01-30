@@ -41,19 +41,21 @@ def generate_remittances_for_all_users(*, session: Session) -> int:
             status=RemittanceStatus.SUCCESS,
         )
 
-        session.add(remittance)
-        session.commit()
-        session.refresh(remittance)
-
-        for worklog_id, amount in remittance_items:
-            session.add(
-                RemittanceItem(
-                    remittance_id=remittance.id,
-                    worklog_id=worklog_id,
-                    amount=amount,
+        # Use nested transaction to ensure atomic operation:
+        # If item insertion fails, the entire remittance creation rolls back
+        with session.begin_nested():
+            session.add(remittance)
+            session.flush()  # Generate remittance.id without committing
+            
+            for worklog_id, amount in remittance_items:
+                session.add(
+                    RemittanceItem(
+                        remittance_id=remittance.id,
+                        worklog_id=worklog_id,
+                        amount=amount,
+                    )
                 )
-            )
-
+        
         session.commit()
         generated_count += 1
 

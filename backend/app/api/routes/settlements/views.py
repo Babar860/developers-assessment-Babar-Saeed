@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 
-from app.api.deps import get_db
+from app.api.deps import get_db, CurrentUser, get_current_active_superuser
 from app.schemas.worklog import WorkLogListResponse, WorkLogPublic
 from app.schemas.remittance import GenerateRemittanceResponse
 from app.models import WorkLog
@@ -19,6 +19,7 @@ router = APIRouter()
 )
 def generate_remittances(
     session: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_active_superuser),
 ):
     
     generated = generate_remittances_for_all_users(session=session)
@@ -39,6 +40,7 @@ def list_all_worklogs(
         regex="^(REMITTED|UNREMITTED)$",
     ),
     session: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_active_superuser),
 ):
 
     worklogs = session.exec(select(WorkLog)).all()

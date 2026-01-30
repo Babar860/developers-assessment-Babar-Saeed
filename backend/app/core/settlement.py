@@ -39,4 +39,5 @@ def total_remitted(session: Session, worklog_id):
 
 
 def payable_amount(session: Session, worklog_id):
-    return total_earned(session, worklog_id) - total_remitted(session, worklog_id)
+    payable = total_earned(session, worklog_id) - total_remitted(session, worklog_id)
+    return payable if payable > 0 else Decimal("0")
