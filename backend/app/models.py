@@ -4,6 +4,7 @@ from enum import Enum
 from datetime import datetime, date, timezone
 
 from pydantic import EmailStr
+from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -167,6 +168,10 @@ class RemittanceItem(SQLModel, table=True):
     """
     Immutable snapshot of what was paid for a WorkLog.
     """
+    __table_args__ = (
+        UniqueConstraint("remittance_id", "worklog_id", name="uq_remittance_item_remittance_worklog"),
+    )
+    
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     remittance_id: uuid.UUID = Field(
         foreign_key="remittance.id",
